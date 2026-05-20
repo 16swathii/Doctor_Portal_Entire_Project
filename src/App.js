@@ -1,25 +1,23 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import AuthGuard from "./components/AuthGuard";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Portal from "./pages/Portal";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/portal" element={
+            <AuthGuard><Portal /></AuthGuard>
+          } />
+          <Route path="*" element={<Navigate to="/signup" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;
