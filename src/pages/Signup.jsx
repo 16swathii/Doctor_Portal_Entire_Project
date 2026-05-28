@@ -1,77 +1,156 @@
-import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+const ALLOWED_DOMAINS = [
+  'gmail.com', 'yahoo.com', 'outlook.com',
+  'hotmail.com', 'icloud.com', 'rediffmail.com',
+];
+
+function isAllowedEmail(email) {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return ALLOWED_DOMAINS.includes(domain);
+}
 
 export default function Signup() {
-  const { signup } = useAuth();
-  const navigate = useNavigate();
+  const { signup }  = useAuth();
+  const navigate    = useNavigate();
   const [form, setForm] = useState({
-    name: "", email: "", password: "",
-    specialisation: "", licenseNo: "", hospital: ""
+    name: '', email: '', password: '',
+    specialisation: '', licenseNo: '', hospital: '',
   });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const update = (field, val) => setForm(f => ({ ...f, [field]: val }));
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!form.name || !form.email || !form.password || !form.licenseNo) {
-      setError("Please fill all required fields.");
+  async function handleSignup() {
+    setError('');
+
+    if (!form.name || !form.email || !form.password ||
+        !form.specialisation || !form.licenseNo || !form.hospital) {
+      setError('Please fill in all fields.');
       return;
     }
+
+    if (!isAllowedEmail(form.email)) {
+      setError(`Allowed domains: ${ALLOWED_DOMAINS.join(', ')}`);
+      return;
+    }
+
     if (form.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError('Password must be at least 6 characters.');
       return;
     }
+
+    setLoading(true);
     try {
-      setLoading(true);
-      setError("");
       await signup(form);
-      navigate("/portal");
+      setSuccess(true);
     } catch (err) {
-      if (err.message.includes("already registered"))
-        setError("This email is already registered. Please log in.");
-      else
-        setError(err.message || "Signup failed. Please try again.");
+      setError(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  // ── Success screen ───────────────────────
+  if (success) {
+    return (
+      <div className="auth-page">
+        <div className="auth-box">
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📧</div>
+            <h2 className="auth-title">Check your email!</h2>
+            <p style={{ fontSize: 13, color: 'var(--text-light)', marginBottom: 24, lineHeight: 1.6 }}>
+              We sent a confirmation link to <strong>{form.email}</strong>.<br />
+              Click the link to activate your account.<br /><br />
+              Check your spam folder if you don't see it.
+            </p>
+            <button className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              onClick={() => navigate('/login')}>
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-logo">🩺 Doctor Portal</div>
+      <div className="auth-box">
+        <div className="auth-logo">
+          <div className="logo-icon"></div>
+          Doctor Portal
+        </div>
         <h2 className="auth-title">Create your account</h2>
-        <p className="auth-sub">Register to access the clinical portal</p>
+        <p className="auth-sub">Fill in your details to register</p>
+
         {error && <div className="auth-error">{error}</div>}
-        <form onSubmit={submit}>
-          <label>Full name *</label>
-          <input name="name" placeholder="Dr. Vedasree Reddy" onChange={handle} />
-          <label>Email *</label>
-          <input name="email" type="email" placeholder="doctor@hospital.in" onChange={handle} />
-          <label>Password *</label>
-          <input name="password" type="password" placeholder="Min 6 characters" onChange={handle} />
-          <label>Specialisation</label>
-          <select name="specialisation" onChange={handle}>
-            <option value="">Select...</option>
+
+        <div className="form-group" style={{ marginBottom: 14 }}>
+          <label className="form-label">Full Name</label>
+          <input className="form-input" placeholder="Dr. Firstname Lastname"
+            value={form.name} onChange={e => update('name', e.target.value)} />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 14 }}>
+          <label className="form-label">Email</label>
+          <input className="form-input" type="email" placeholder="doctor@gmail.com"
+            value={form.email} onChange={e => update('email', e.target.value)} />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 14 }}>
+          <label className="form-label">Password</label>
+          <input className="form-input" type="password" placeholder="Min 6 characters"
+            value={form.password} onChange={e => update('password', e.target.value)} />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 14 }}>
+          <label className="form-label">Specialisation</label>
+          <select className="form-select"
+            value={form.specialisation} onChange={e => update('specialisation', e.target.value)}>
+            <option value="">Select specialisation</option>
             <option>Cardiology</option>
-            <option>Internal Medicine</option>
-            <option>General Practice</option>
             <option>Neurology</option>
-            <option>Orthopaedics</option>
+            <option>Orthopedics</option>
+            <option>Pediatrics</option>
+            <option>Dermatology</option>
+            <option>General Medicine</option>
+            <option>Gynecology</option>
+            <option>Psychiatry</option>
+            <option>Oncology</option>
+            <option>ENT</option>
           </select>
-          <label>Medical licence number *</label>
-          <input name="licenseNo" placeholder="MCI-XXXXXX" onChange={handle} />
-          <label>Hospital / clinic</label>
-          <input name="hospital" placeholder="e.g. Apollo Hospitals, Bangalore" onChange={handle} />
-          <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? "Creating account..." : "Create account →"}
-          </button>
-        </form>
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 14 }}>
+          <label className="form-label">Medical License No.</label>
+          <input className="form-input" placeholder="e.g. MCI-123456"
+            value={form.licenseNo} onChange={e => update('licenseNo', e.target.value)} />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 20 }}>
+          <label className="form-label">Hospital / Clinic</label>
+          <input className="form-input" placeholder="e.g. Apollo Hospitals, Bangalore"
+            value={form.hospital} onChange={e => update('hospital', e.target.value)} />
+        </div>
+
+        <button
+          className="btn btn-primary"
+          style={{ width: '100%', justifyContent: 'center', marginBottom: 14 }}
+          onClick={handleSignup}
+          disabled={loading}
+        >
+          {loading ? 'Creating account...' : 'Sign Up'}
+        </button>
+
         <p className="auth-switch">
-          Already registered? <Link to="/login">Log in</Link>
+          Already have an account?{' '}
+          <Link to="/login">Log in</Link>
         </p>
       </div>
     </div>

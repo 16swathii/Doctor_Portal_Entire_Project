@@ -1,41 +1,26 @@
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
-import Consultation from "../components/Consultation";
-import Records from "../components/Records";
-import Cases from "../components/Cases";
-import MyPatients from "./MyPatients";
-import DoctorSearch from "./DoctorSearch";
-import PatientSearch from "./PatientSearch";
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
+import Dashboard from '../components/Dashboard';
+import Consultation from '../components/Consultation';
+import PatientSearch from '../components/PatientSearch';
+import Cases from '../components/Cases';
 
 export default function Portal() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-  const [activePage, setActivePage] = useState("consultation");
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const renderPage = () => {
-    if (activePage === "consultation") return <Consultation />;
-    if (activePage === "records") return <Records />;
-    if (activePage === "cases") return <Cases />;
-    if (activePage === "mypatients") return <MyPatients />;
-    if (activePage === "doctorsearch") return <DoctorSearch />;
-    if (activePage === "patientsearch") return <PatientSearch />;
-  };
+  const { doctor } = useAuth(); // ← get doctor from AuthContext directly
+  const [page, setPage] = useState('dashboard');
 
   return (
     <div className="app">
-      <Header onLogout={handleLogout} />
+      <Header doctor={doctor} />
       <div className="body">
-        <Sidebar activePage={activePage} setActivePage={setActivePage} />
+        <Sidebar page={page} onNavigate={setPage} />
         <div className="main">
-          {renderPage()}
+          {page === 'dashboard'    && <Dashboard    doctor={doctor} />}
+          {page === 'consultation' && <Consultation doctor={doctor} />}
+          {page === 'patients'     && <PatientSearch doctor={doctor} />}
+          {page === 'cases'        && <Cases />}
         </div>
       </div>
     </div>

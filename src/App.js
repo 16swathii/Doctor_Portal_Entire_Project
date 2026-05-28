@@ -11,11 +11,12 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login"  element={<Login />} />
           <Route path="/portal" element={
             <AuthGuard><Portal /></AuthGuard>
           } />
-          <Route path="*" element={<Navigate to="/signup" replace />} />
+          {/* Default → go to login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,11 +1,8 @@
-export default function Sidebar({ activePage, setActivePage }) {
+export default function Sidebar({ page, onNavigate }) {
   const items = [
-    { key: 'consultation', label: 'Patient consultation' },
-    { key: 'records',      label: 'Patient record search' },
-    { key: 'cases',        label: 'Similar case search' },
-    { key: 'mypatients',   label: 'My patients' },
-    { key: 'doctorsearch', label: 'Doctor search' },
-    { key: 'patientsearch', label: 'Patient search' },
+    { key: 'consultation',  label: 'Patient Consultation', icon: '📋' },
+    { key: 'patients',      label: 'Patient Search',       icon: '🔍' },
+    { key: 'cases',         label: 'Similar Case Search',  icon: '🔬' },
   ];
 
   return (
@@ -15,10 +12,10 @@ export default function Sidebar({ activePage, setActivePage }) {
         {items.map(item => (
           <div
             key={item.key}
-            className={`nav-item ${activePage === item.key ? 'active' : ''}`}
-            onClick={() => setActivePage(item.key)}
+            className={`nav-item ${page === item.key ? 'active' : ''}`}
+            onClick={() => onNavigate(item.key)}
           >
-            <div className="nav-dot"></div>
+            <span className="nav-icon">{item.icon}</span>
             {item.label}
           </div>
         ))}
