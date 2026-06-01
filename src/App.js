@@ -10,11 +10,16 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login"  element={<Login />} />
+          <Route path="/signup"  element={<Signup />} />
+          <Route path="/login"   element={<Login />} />
+
+          {/* Handles email confirmation redirect */}
+          <Route path="/auth/callback" element={<Navigate to="/portal" replace />} />
+
           <Route path="/portal" element={
             <AuthGuard><Portal /></AuthGuard>
           } />
+
           {/* Default → go to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

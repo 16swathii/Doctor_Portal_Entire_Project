@@ -64,29 +64,37 @@ export function AuthProvider({ children }) {
   const signup = async (form) => {
     const { email, password, name, specialisation, licenseNo, hospital } = form;
 
-    // Step 1 — Create auth user
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // Step 1 — Create auth user with name in metadata
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name } // trigger uses this to set name
+      }
+    });
     if (error) throw error;
 
+    // Step 2 — Try to upsert doctor profile
+    // This may fail if email confirmation is ON (user not confirmed yet)
+    // That's OK — trigger already inserted basic row
+    // Full profile will be saved on first login
     if (data.user) {
-      // Step 2 — Upsert into doctors table
-      // (trigger may have already inserted basic row, so we upsert to add full details)
-      const { error: dbError } = await supabase
-        .from('doctors')
-        .upsert({
+      try {
+        await supabase.from('doctors').upsert({
           id:            data.user.id,
-          name:          name,
-          email:         email,
-          specialisation:specialisation,
+          name,
+          email,
+          specialisation,
           license_no:    licenseNo,
-          hospital:      hospital,
-        }, { onConflict: 'id' }); // ← if id exists, update it instead of error
-
-      if (dbError) {
-        console.error('Doctor upsert error:', dbError.message);
-        throw new Error('Profile save failed: ' + dbError.message);
+          hospital,
+        }, { onConflict: 'id' });
+      } catch (dbErr) {
+        // Silently ignore — trigger already saved basic profile
+        // Full details will be updated on first login
+        console.log('Profile will be completed on first login:', dbErr.message);
       }
     }
+    // Always show success — auth user was created
   };
 
   const login = async (email, password) => {

@@ -1,9 +1,10 @@
 import { supabase } from '../supabase';
+import Notifications from './Notifications';
 
 export default function Header({ doctor }) {
   async function handleLogout() {
     await supabase.auth.signOut();
-    window.location.href = '/'; // redirect to login
+    window.location.href = '/';
   }
 
   return (
@@ -14,6 +15,9 @@ export default function Header({ doctor }) {
       </div>
       <div className="header-spacer"></div>
       <div className="user-section">
+        {/* Notification Bell */}
+        <Notifications doctor={doctor} />
+
         <span className="user-name">{doctor?.name || 'Doctor'}</span>
         <div className="avatar">
           {doctor?.name?.charAt(0).toUpperCase() || 'D'}
